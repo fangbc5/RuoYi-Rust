@@ -78,9 +78,9 @@ pub fn json_error(code: i32, msg: &str) -> actix_web::HttpResponse {
 pub fn get_browser_info(req: &HttpRequest) -> String {
     let ua = get_header(req, "User-Agent").unwrap_or_default();
     // 浏览器快速提取
-    let browser = if let Some(pos) = ua.find("Chrome/") {
+    let browser = if let Some(_pos) = ua.find("Chrome/") {
         "Chrome"
-    } else if let Some(pos) = ua.find("Safari/") {
+    } else if let Some(_pos) = ua.find("Safari/") {
         "Safari"
     } else if ua.contains("Firefox") {
         "Firefox"

@@ -112,10 +112,6 @@ pub async fn get_redis_info(config: web::Data<Arc<AppConfig>>) -> impl Responder
         CacheType::Redis | CacheType::Multi => {
             if let Some(_redis_url) = &config.cache.redis.url {
                 if let Ok(cache) = get_global_cache() {
-                    // 尝试获取Redis信息
-                    let info_key = "redis_info";
-                    let db_size_key = "redis_dbsize";
-
                     // 获取Redis信息
                     let info = match cache.info(None).await {
                         Ok(info) => info,
