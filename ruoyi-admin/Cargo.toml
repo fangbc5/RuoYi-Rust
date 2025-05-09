@@ -1,0 +1,51 @@
+[package]
+name = "ruoyi-admin"
+version = "0.1.0"
+edition = "2021"
+authors = ["RuoYi-Rust Team"]
+description = "若依管理系统的管理模块"
+license = "MIT"
+
+[[bin]]
+name = "ruoyi-admin"
+path = "src/main.rs"
+
+[dependencies]
+# 项目内部依赖
+ruoyi-common = { path = "../ruoyi-common" }
+ruoyi-framework = { path = "../ruoyi-framework" }
+ruoyi-system = { path = "../ruoyi-system" }
+
+# Web 框架
+actix-web.workspace = true
+actix-rt.workspace = true
+actix-cors.workspace = true
+actix-files.workspace = true
+actix-multipart.workspace = true
+
+# 日志和配置
+log.workspace = true
+log4rs.workspace = true
+config.workspace = true
+dotenv.workspace = true
+
+# 序列化与反序列化
+serde.workspace = true
+serde_json.workspace = true
+
+# 工具库
+chrono.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+dashmap.workspace = true
+
+# 验证码
+captcha.workspace = true
+
+# 异步相关
+tokio.workspace = true
+futures.workspace = true
+
+# 其他工具
+mime.workspace = true
+mime_guess.workspace = true 

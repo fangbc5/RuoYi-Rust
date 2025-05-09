@@ -1,0 +1,93 @@
+[package]
+name = "ruoyi-rust"
+version = "0.1.0"
+edition = "2021"
+authors = ["RuoYi-Rust Team"]
+description = "若依管理系统的 Rust 实现版本"
+license = "MIT"
+include = [
+    "config/**/*",  # 包含整个 config 目录
+    "README.md",
+    "LICENSE"
+]
+
+[workspace]
+members = [
+    "ruoyi-admin",
+    "ruoyi-common",
+    "ruoyi-framework",
+    "ruoyi-macros",
+    "ruoyi-system",
+]
+
+[workspace.dependencies]
+# Web 框架相关
+actix-web = "4.4.0"
+actix-rt = "2.9.0"
+actix-cors = "0.6.4"
+actix-files = "0.6.2"
+actix-multipart = "0.6.1"
+actix-service = "2.0.2"
+
+# 数据库相关
+sea-orm = { version = "0.12.0", features = ["sqlx-mysql", "runtime-tokio-native-tls", "macros", "with-chrono", "with-json"] }
+sqlx = { version = "0.7.1", features = ["mysql", "runtime-tokio-native-tls", "chrono"] }
+redis = { version = "0.22.3", features = ["cluster", "tokio-comp", "connection-manager"] }
+moka = { version = "0.12", features = ["future"] }
+
+# 异步和并发
+tokio = { version = "1.32.0", features = ["full"] }
+futures = "0.3.28"
+async-trait = "0.1.73"
+
+# 序列化/反序列化
+serde = { version = "1.0.188", features = ["derive"] }
+serde_json = "1.0.107"
+
+# 日期时间处理
+chrono = { version = "0.4.31", features = ["serde"] }
+
+# 日志和监控
+log = "0.4"
+log4rs = "1.3" 
+
+# 安全相关
+jsonwebtoken = "9.1.0"
+bcrypt = "0.15.0"
+rand = "0.8.5"
+argon2 = "0.5.2"
+
+# 错误处理
+thiserror = "1.0.48"
+anyhow = "1.0.75"
+
+# 工具库
+uuid = { version = "1.4.1", features = ["v4", "serde"] }
+lazy_static = "1.4.0"
+regex = "1.9.5"
+url = "2.4.1"
+dashmap = "5.5.3"
+mime = "0.3.17"
+mime_guess = "2.0.4"
+num_enum = "0.7"
+sysinfo = "0.29.10"
+
+# 配置管理
+config = "0.13.3"
+dotenv = "0.15.0"
+
+# 验证码
+captcha = "0.0.9"
+image = "0.24.7" 
+
+[profile.release]
+# 最小体积优化，或 "s" 为适度优化
+opt-level = "z"  
+# 链接时优化
+lto = "thin"    
+# 减少并行编译单元以提高优化 
+codegen-units = 1 
+# 自动去除符号信息
+strip = true  
+# 使用 panic=abort 而不是 unwinding   
+panic = "abort" 

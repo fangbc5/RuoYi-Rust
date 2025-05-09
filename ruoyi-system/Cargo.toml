@@ -1,0 +1,38 @@
+[package]
+name = "ruoyi-system"
+version = "0.1.0"
+edition = "2021"
+authors = ["RuoYi-Rust Team"]
+description = "若依管理系统的系统模块"
+license = "MIT"
+
+[dependencies]
+# 项目内部依赖
+ruoyi-common = { path = "../ruoyi-common" }
+ruoyi-framework = { path = "../ruoyi-framework" }
+ruoyi-macros = { path = "../ruoyi-macros" }
+
+# 数据库
+sea-orm.workspace = true
+
+# Web 框架
+actix-web.workspace = true
+
+# 序列化与反序列化
+serde.workspace = true
+serde_json.workspace = true
+
+# 工具库
+chrono.workspace = true
+uuid.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+log.workspace = true
+num_enum.workspace = true
+lazy_static.workspace = true
+sysinfo.workspace = true
+
+# 异步相关
+async-trait.workspace = true
+futures.workspace = true
+tokio.workspace = true 

@@ -1,0 +1,26 @@
+[package]
+name = "ruoyi-macros"
+version = "0.1.0"
+edition = "2021"
+authors = ["RuoYi-Rust Team"]
+description = "若依管理系统的宏定义"
+license = "MIT"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+# 项目内部依赖
+ruoyi-common = { path = "../ruoyi-common" }
+
+# 宏相关
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = { version = "1.0", features = ["full", "extra-traits"] }
+
+# 序列化与反序列化
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# 日志
+log = "0.4" 

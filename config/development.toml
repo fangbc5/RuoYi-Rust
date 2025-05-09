@@ -1,0 +1,35 @@
+# 应用基本配置
+[app]
+name = "RuoYi-Rust"
+version = "0.1.0"
+copyright_year = "2025"
+demo_enabled = false
+upload_path = "upload"
+
+# 服务器配置
+[server]
+host = "127.0.0.1"
+port = 8080
+
+# JWT配置
+[jwt]
+secret = "ruoyi_rust_secret_key_for_development"
+expires_in = 86400  # 24小时(秒)
+
+
+# 数据库配置
+[database]
+url = "mysql://root:123456@localhost:3306/ruoyi"
+
+# 缓存配置,支持多级缓存
+[cache]
+# 默认开启 = true
+enabled = true
+# 默认类型 = local（local、redis、multi）
+cache_type = "redis"
+
+[cache.redis]
+# 连接类型 (standalone、cluster)
+connection_type = "standalone"
+url = "redis://localhost:6379" 
+password = "123456"

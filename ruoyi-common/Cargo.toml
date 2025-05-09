@@ -1,0 +1,43 @@
+[package]
+name = "ruoyi-common"
+version = "0.1.0"
+edition = "2021"
+authors = ["RuoYi-Rust Team"]
+description = "若依管理系统的通用工具模块"
+license = "MIT"
+
+[dependencies]
+# 序列化与反序列化
+serde.workspace = true
+serde_json.workspace = true
+
+# 工具库
+chrono.workspace = true
+uuid.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+log.workspace = true
+regex.workspace = true
+lazy_static.workspace = true
+num_enum.workspace = true
+
+# Web 相关
+actix-web.workspace = true
+jsonwebtoken.workspace = true
+sea-orm.workspace = true
+
+# 缓存相关
+redis = { workspace = true, optional = true }
+
+# 加密相关
+argon2.workspace = true
+rand.workspace = true
+
+# 异步相关
+async-trait.workspace = true
+futures.workspace = true
+tokio.workspace = true
+
+[features]
+default = []
+redis = ["dep:redis"] 

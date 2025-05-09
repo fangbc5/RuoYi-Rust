@@ -1,0 +1,59 @@
+[package]
+name = "ruoyi-framework"
+version = "0.1.0"
+edition = "2021"
+authors = ["RuoYi-Rust Team"]
+description = "若依管理系统的框架模块"
+license = "MIT"
+
+[dependencies]
+# 项目内部依赖
+ruoyi-common = { path = "../ruoyi-common" }
+
+# Web 框架
+actix-web.workspace = true
+actix-rt.workspace = true
+actix-cors.workspace = true
+actix-service.workspace = true
+
+# 数据库
+sea-orm.workspace = true
+sqlx.workspace = true
+redis.workspace = true
+
+# 认证与安全
+jsonwebtoken.workspace = true
+argon2.workspace = true
+rand.workspace = true
+chrono.workspace = true
+
+# 日志和配置
+log.workspace = true
+log4rs.workspace = true
+config.workspace = true
+dotenv.workspace = true
+
+# 序列化与反序列化
+serde.workspace = true
+serde_json.workspace = true
+
+# 异步相关
+tokio.workspace = true
+futures.workspace = true
+async-trait.workspace = true
+
+# 工具库
+thiserror.workspace = true
+anyhow.workspace = true
+uuid.workspace = true
+dashmap.workspace = true
+lazy_static.workspace = true
+
+# 验证码相关
+captcha.workspace = true
+
+# 图像处理
+image.workspace = true
+
+# 添加需要的依赖
+moka.workspace = true
