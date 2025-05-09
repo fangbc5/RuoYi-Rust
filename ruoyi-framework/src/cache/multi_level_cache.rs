@@ -9,7 +9,6 @@
 
 use async_trait::async_trait;
 use log::{debug, error, info, warn};
-use ruoyi_common::utils::string::regex_from_pattern;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Duration;

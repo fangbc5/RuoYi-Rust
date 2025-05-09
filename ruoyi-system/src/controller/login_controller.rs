@@ -13,7 +13,7 @@ use ruoyi_common::{
     vo::{RList, R},
 };
 use ruoyi_framework::{
-    cache::{get_global_cache, Cache},
+    cache::get_global_cache,
     config::AppConfig,
     logger::entity::LoginInfoModel,
     web::{

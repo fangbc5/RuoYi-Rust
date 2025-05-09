@@ -272,7 +272,7 @@ impl Cache for LocalCache {
         Ok(0)
     }
 
-    async fn info(&self, key: Option<String>) -> CacheResult<String> {
+    async fn info(&self, _key: Option<String>) -> CacheResult<String> {
         Ok("".to_string())
     }
 

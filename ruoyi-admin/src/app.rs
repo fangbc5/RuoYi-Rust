@@ -3,7 +3,7 @@
 use actix_web::{web, App};
 use dashmap::DashMap;
 use log::info;
-use ruoyi_framework::cache::{init_global_cache_async, is_global_cache_initialized, LocalCacheConfig, MultiLevelCacheConfig, RedisConfig, RedisConnectionType};
+use ruoyi_framework::cache::{init_global_cache_async, is_global_cache_initialized};
 use ruoyi_framework::db::DbManager;
 use ruoyi_framework::web::service::captcha::InMemoryCaptchaService;
 use ruoyi_system::repository::config_repository::ConfigRepositoryImpl;
