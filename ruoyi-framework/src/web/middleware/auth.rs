@@ -129,7 +129,6 @@ where
                 });
             }
         };
-
         // 将用户信息添加到请求扩展中
         let claims = Arc::new(claims);
         req.extensions_mut().insert(claims.clone());
@@ -141,7 +140,9 @@ where
             user_id: claims.user_id,
             user_name: claims.user_name.clone(),
             ip,
+            token_id: claims.token_id.clone(),
         });
+
         let fut = self.service.call(req);
         Box::pin(async move { fut.await })
     }

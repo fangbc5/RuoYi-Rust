@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use ruoyi_common::utils::time::{deserialize_optional_datetime, serialize_optional_datetime};
 use serde::{Deserialize, Serialize};
 
 use crate::entity::prelude::*;
@@ -88,28 +89,28 @@ impl UserInfo {
         }
     }
 
-    pub fn from_model(model: UserModel) -> Self {
+    pub fn from_model(model: &UserModel) -> Self {
         Self {
             is_admin: UserInfo::is_admin(model.user_id),
             user_id: model.user_id,
             dept_id: model.dept_id,
-            user_name: model.user_name,
-            nick_name: model.nick_name,
-            user_type: model.user_type,
-            email: model.email,
-            phonenumber: model.phonenumber,
-            sex: model.sex,
-            avatar: model.avatar,
-            password: model.password,
-            status: model.status,
-            del_flag: model.del_flag,
-            login_ip: model.login_ip,
+            user_name: model.user_name.clone(),
+            nick_name: model.nick_name.clone(),
+            user_type: model.user_type.clone(),
+            email: model.email.clone(),
+            phonenumber: model.phonenumber.clone(),
+            sex: model.sex.clone(),
+            avatar: model.avatar.clone(),
+            password: model.password.clone(),
+            status: model.status.clone(),
+            del_flag: model.del_flag.clone(),
+            login_ip: model.login_ip.clone(),
             login_date: model.login_date,
-            create_by: model.create_by,
+            create_by: model.create_by.clone(),
             create_time: model.create_time,
-            update_by: model.update_by,
+            update_by: model.update_by.clone(),
             update_time: model.update_time,
-            remark: model.remark,
+            remark: model.remark.clone(),
             dept: None,
             roles: vec![],
         }
@@ -147,4 +148,44 @@ pub struct SafeUserInfo {
     pub dept_id: Option<i64>,
     /// 创建时间
     pub create_time: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserOnline {
+    // 会话编号
+    pub token_id: String,
+    // 部门名称
+    pub dept_name: Option<String>,
+    // 用户名称
+    pub user_name: Option<String>,
+    // 登录IP地址
+    pub ipaddr: Option<String>,
+    // 登录地址
+    pub login_location: Option<String>,
+    // 浏览器类型
+    pub browser: Option<String>,
+    // 操作系统
+    pub os: Option<String>,
+    // 登录时间
+    #[serde(
+        serialize_with = "serialize_optional_datetime",
+        deserialize_with = "deserialize_optional_datetime"
+    )]
+    pub login_time: Option<DateTime<Utc>>,
+}
+
+impl UserOnline {
+    pub fn from_login_info(token_id: &str, login_info: &LoginInfoModel) -> Self {
+        Self {
+            token_id: token_id.to_string(),
+            dept_name: None,
+            user_name: login_info.user_name.clone(),
+            ipaddr: login_info.ipaddr.clone(),
+            login_location: login_info.login_location.clone(),
+            browser: login_info.browser.clone(),
+            os: login_info.os.clone(),
+            login_time: login_info.login_time,
+        }
+    }
 }

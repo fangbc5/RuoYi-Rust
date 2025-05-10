@@ -69,7 +69,7 @@ pub trait UserRepository: Send + Sync {
         &self,
         query: &UserQuery,
         page_param: &PageParam,
-    ) -> Result<(Vec<UserModel>, u64)>;
+    ) -> Result<(Vec<(UserModel, Option<DeptModel>)>, u64)>;
 }
 
 /// 用户仓库实现
@@ -372,17 +372,53 @@ impl UserRepository for UserRepositoryImpl {
         &self,
         query: &UserQuery,
         page_param: &PageParam,
-    ) -> Result<(Vec<UserModel>, u64)> {
+    ) -> Result<(Vec<(UserModel, Option<DeptModel>)>, u64)> {
         let condition = self.build_query_condition(query);
 
-        let paginator = UserEntity::find()
+        // 创建查询构建器
+        let query_builder = UserEntity::find()
             .filter(condition)
-            .order_by(UserColumn::UserId, sea_orm::Order::Asc)
-            .paginate(self.db.as_ref(), page_param.page_size as u64);
+            .order_by(UserColumn::UserId, sea_orm::Order::Asc);
 
+        // 使用分页
+        let paginator = query_builder.paginate(self.db.as_ref(), page_param.page_size as u64);
+
+        // 获取总数
         let total = paginator.num_items().await?;
+
+        // 先获取分页后的用户数据
         let users = paginator.fetch_page(page_param.page_num as u64 - 1).await?;
 
-        Ok((users, total))
+        // 如果没有数据，直接返回空结果
+        if users.is_empty() {
+            return Ok((Vec::new(), total));
+        }
+
+        // 获取用户ID列表
+        let user_ids: Vec<i64> = users.iter().map(|u| u.user_id).collect();
+
+        // 使用用户ID列表查询用户和关联的部门
+        let users_with_depts = UserEntity::find()
+            .filter(UserColumn::UserId.is_in(user_ids.clone()))
+            .find_with_related(DeptEntity)
+            .all(self.db.as_ref())
+            .await?;
+
+        // 创建用户ID到(用户,部门)的映射
+        let mut user_dept_map = std::collections::HashMap::new();
+        for (user, depts) in users_with_depts {
+            let dept = depts.into_iter().next();
+            user_dept_map.insert(user.user_id, (user, dept));
+        }
+
+        // 按照原始顺序重建结果
+        let mut result = Vec::with_capacity(users.len());
+        for user_id in user_ids {
+            if let Some(user_dept) = user_dept_map.remove(&user_id) {
+                result.push(user_dept);
+            }
+        }
+
+        Ok((result, total))
     }
 }

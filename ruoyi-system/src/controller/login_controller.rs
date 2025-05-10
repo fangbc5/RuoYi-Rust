@@ -24,7 +24,7 @@ use ruoyi_framework::{
 use serde::Deserialize;
 
 use crate::{
-    entity::vo::user::UserInfo,
+    entity::vo::user::{UserInfo, UserOnline},
     service::{
         menu_service::{MenuService, MenuServiceImpl},
         user_service::{UserService, UserServiceImpl},
@@ -93,8 +93,11 @@ pub async fn login(
                 }
                 // 实际生产中应当验证密码
                 if user.is_active() {
+                    // 生成短uuid
+                    let short_uuid = uuid::Uuid::new_v4().to_string();
                     // 生成JWT令牌
                     let token = match generate_token(
+                        &short_uuid,
                         user.user_id as i64,
                         &user.user_name,
                         &config.jwt.secret,
@@ -111,14 +114,17 @@ pub async fn login(
 
                     // 返回令牌
                     login_info.msg = Some("登录成功".to_string());
+                    let mut user_online = UserOnline::from_login_info(&short_uuid, &login_info);
+                    if let Some(dept) = user.dept {
+                        user_online.dept_name = dept.dept_name.clone();
+                    }
                     info!(target: "system::login_info", "{}", serde_json::to_string(&login_info).unwrap());
                     // 缓存用户信息
                     if let Ok(cache) = get_global_cache() {
                         cache
-                            .hset_string(
-                                constants::cache::USER_INFO_KEY,
-                                &user.user_name,
-                                &serde_json::to_string(&user).unwrap(),
+                            .set_string(
+                                &format!("{}{}", constants::cache::TOKEN_PREFIX, &short_uuid),
+                                &serde_json::to_string(&user_online).unwrap(),
                             )
                             .await
                             .unwrap();
@@ -154,7 +160,7 @@ pub async fn logout() -> impl Responder {
     if let Some(user_context) = tls::get_sync_user_context() {
         if let Ok(cache) = get_global_cache() {
             cache
-                .hdel(constants::cache::USER_INFO_KEY, &user_context.user_name)
+                .del(&format!("{}{}", constants::cache::TOKEN_PREFIX, user_context.token_id))
                 .await
                 .unwrap();
         }

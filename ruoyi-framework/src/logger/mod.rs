@@ -58,7 +58,7 @@ pub fn init_logger_with_db(db: Arc<DatabaseConnection>) -> Result<()> {
     let database_appender = DatabaseAppender::new(db, 100, Duration::from_secs(1));
 
     // 环境变量中获取日志级别
-    let log_level = std::env::var("RUST_LOG").unwrap_or_default();
+    let log_level = std::env::var("RUST_LOG").unwrap_or_else(|_| "info".to_string());
     let log_level = log::LevelFilter::from_str(&log_level).unwrap_or(log::LevelFilter::Info);
 
     // 从配置文件初始化（只需调用一次）

@@ -14,10 +14,10 @@ use std::path::Path;
 use std::sync::Arc;
 
 pub mod app;
-pub mod db;
 pub mod cache;
-pub mod server;
+pub mod db;
 pub mod jwt;
+pub mod server;
 
 /// 应用配置
 #[derive(Debug, Deserialize, Clone)]

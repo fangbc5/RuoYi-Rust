@@ -8,6 +8,7 @@ pub struct UserContext {
     pub user_id: i64,
     pub user_name: String,
     pub ip: IpAddr,
+    pub token_id: String,
 }
 
 // 定义任务本地存储

@@ -42,7 +42,7 @@ async fn main() -> std::io::Result<()> {
             ));
         }
     };
-    
+
     // 初始化日志系统
     init_logger_with_db(db_manager.get_connection()).expect("初始化日志系统失败");
     init_global_cache(app_config.clone()).await;

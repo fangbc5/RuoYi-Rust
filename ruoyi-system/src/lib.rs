@@ -30,6 +30,7 @@ pub fn register_routes(cfg: &mut web::ServiceConfig) {
             .configure(controller::login_info_controller::load_login_info_routes)
             .configure(controller::oper_log_controller::load_oper_log_routes)
             .configure(controller::monitor::cache_controller::load_cache_routes)
-            .configure(controller::monitor::server_controller::load_server_routes),
+            .configure(controller::monitor::server_controller::load_server_routes)
+            .configure(controller::monitor::user_online_controller::load_user_online_routes),
     );
 }

@@ -163,9 +163,8 @@ pub async fn refresh_cache(
                         {
                             // 将字典数据缓存到redis
                             let _ = cache
-                                .hset_string(
-                                    constants::cache::SYS_DICT_KEY,
-                                    &dict_type,
+                                .set_string(
+                                    &format!("{}{}", constants::cache::SYS_DICT_PREFIX, dict_type),
                                     &serde_json::to_string(&dict_data).unwrap(),
                                 )
                                 .await;

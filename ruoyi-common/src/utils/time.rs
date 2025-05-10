@@ -33,6 +33,21 @@ pub fn to_local(dt: &DateTime<Utc>) -> DateTime<Local> {
     dt.with_timezone(&Local)
 }
 
+/// 序列化响应的时间格式
+pub fn serialize_optional_datetime<S>(
+    value: &Option<DateTime<Utc>>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    if let Some(dt) = value {
+        serializer.serialize_str(&format_datetime(dt, "%Y-%m-%d %H:%M:%S"))
+    } else {
+        serializer.serialize_none()
+    }
+}
+
 // 添加自定义反序列化函数，处理可选日期时间
 pub fn deserialize_optional_datetime<'de, D>(
     deserializer: D,
@@ -74,6 +89,7 @@ where
     }
 }
 
+/// 格式化时间间隔
 pub fn format_duration(duration: std::time::Duration) -> String {
     let years = duration.as_secs() / 3600 / 24 / 365;
     let months = (duration.as_secs() % (3600 * 24 * 365)) / (3600 * 24 * 30);

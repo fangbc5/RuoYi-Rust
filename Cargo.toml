@@ -1,24 +1,13 @@
-[package]
-name = "ruoyi-rust"
-version = "0.1.0"
-edition = "2021"
-authors = ["RuoYi-Rust Team"]
-description = "若依管理系统的 Rust 实现版本"
-license = "MIT"
-include = [
-    "config/**/*",  # 包含整个 config 目录
-    "README.md",
-    "LICENSE"
-]
-
 [workspace]
 members = [
     "ruoyi-admin",
     "ruoyi-common",
-    "ruoyi-framework",
+    "ruoyi-framework", "ruoyi-generator",
     "ruoyi-macros",
     "ruoyi-system",
 ]
+# 可选：统一依赖解析
+resolver = "2"                 
 
 [workspace.dependencies]
 # Web 框架相关

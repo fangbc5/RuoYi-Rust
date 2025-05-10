@@ -45,31 +45,20 @@ pub mod menu {
 
 /// 缓存常量
 pub mod cache {
-    /// 用户信息    
-    pub const USER_INFO_KEY: &str = "user_info_key";
-    /// 配置信息
-    pub const SYS_CONFIG_KEY: &str = "sys_config_key";
-    /// 字典信息
-    pub const SYS_DICT_KEY: &str = "sys_dict_key";
-    /// 验证码
-    pub const CAPTCHA_KEY: &str = "captcha_key";
-    /// 防重提交
-    pub const REPEAT_SUBMIT_KEY: &str = "repeat_submit_key";
-    /// 限流处理
-    pub const RATE_LIMIT_KEY: &str = "rate_limit_key";
-    /// 密码错误次数
-    pub const PWD_ERR_CNT_KEY: &str = "pwd_err_cnt_key";
-
     /// Token 前缀
     pub const TOKEN_PREFIX: &str = "login_tokens:";
-    /// 验证码前缀
-    pub const CAPTCHA_PREFIX: &str = "captcha_codes:";
     /// 参数缓存前缀
     pub const SYS_CONFIG_PREFIX: &str = "sys_config:";
-    /// 部门缓存前缀
-    pub const SYS_DEPT_PREFIX: &str = "sys_dept:";
     /// 字典缓存前缀
     pub const SYS_DICT_PREFIX: &str = "sys_dict:";
+    /// 验证码前缀
+    pub const CAPTCHA_PREFIX: &str = "captcha_codes:";
+    /// 防重提交
+    pub const REPEAT_SUBMIT_PREFIX: &str = "repeat_submit:";
+    /// 限流处理
+    pub const RATE_LIMIT_PREFIX: &str = "rate_limit:";
+    /// 密码错误次数
+    pub const PWD_ERR_CNT_PREFIX: &str = "pwd_err_cnt:";
 }
 
 /// 字典类型常量

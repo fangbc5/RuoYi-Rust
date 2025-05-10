@@ -283,7 +283,7 @@ impl RoleService for RoleServiceImpl {
             .await?;
         let users = users
             .into_iter()
-            .map(|user| UserInfo::from_model(user))
+            .map(|user| UserInfo::from_model(&user))
             .collect();
         Ok((users, total))
     }
@@ -305,7 +305,7 @@ impl RoleService for RoleServiceImpl {
             .await?;
         let users = users
             .into_iter()
-            .map(|user| UserInfo::from_model(user))
+            .map(|user| UserInfo::from_model(&user))
             .collect();
         Ok((users, total))
     }

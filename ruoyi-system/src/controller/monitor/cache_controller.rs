@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use actix_web::{get, web, HttpResponse, Responder};
+use actix_web::{delete, get, web, HttpResponse, Responder};
 use lazy_static::lazy_static;
 use log::info;
 use ruoyi_common::utils::string::{redis_command_stats_to_map, redis_info_to_map};
@@ -32,13 +32,13 @@ impl CacheVO {
 
 lazy_static! {
     static ref CACHE_NAME: Vec<CacheVO> = vec![
-        CacheVO::new(constants::cache::USER_INFO_KEY, "用户信息"),
-        CacheVO::new(constants::cache::SYS_CONFIG_KEY, "配置信息"),
-        CacheVO::new(constants::cache::SYS_DICT_KEY, "字典信息"),
-        CacheVO::new(constants::cache::CAPTCHA_KEY, "验证码"),
-        CacheVO::new(constants::cache::REPEAT_SUBMIT_KEY, "防重提交"),
-        CacheVO::new(constants::cache::RATE_LIMIT_KEY, "限流处理"),
-        CacheVO::new(constants::cache::PWD_ERR_CNT_KEY, "密码错误次数"),
+        CacheVO::new(constants::cache::TOKEN_PREFIX, "登录令牌"),
+        CacheVO::new(constants::cache::SYS_CONFIG_PREFIX, "配置信息"),
+        CacheVO::new(constants::cache::SYS_DICT_PREFIX, "字典信息"),
+        CacheVO::new(constants::cache::CAPTCHA_PREFIX, "验证码"),
+        CacheVO::new(constants::cache::REPEAT_SUBMIT_PREFIX, "防重提交"),
+        CacheVO::new(constants::cache::RATE_LIMIT_PREFIX, "限流处理"),
+        CacheVO::new(constants::cache::PWD_ERR_CNT_PREFIX, "密码错误次数"),
     ];
 }
 
@@ -53,7 +53,15 @@ fn get_cache_vo(cache_name: &str) -> CacheVO {
 
 #[get("/getNames")]
 pub async fn get_names() -> impl Responder {
-    HttpResponse::Ok().json(RList::ok_with_data(CACHE_NAME.clone()))
+    let cache_names = CACHE_NAME
+        .iter()
+        .map(|c| {
+            let mut cache_vo = c.clone();
+            cache_vo.cache_name = cache_vo.cache_name.replace(":", "");
+            cache_vo
+        })
+        .collect();
+    HttpResponse::Ok().json(RList::ok_with_data(cache_names))
 }
 
 #[get("/getKeys/{cache_name}")]
@@ -62,7 +70,11 @@ pub async fn get_keys(path: web::Path<String>) -> impl Responder {
     let cache_name = path.into_inner();
     match get_global_cache() {
         Ok(cache) => {
-            if let Ok(keys) = cache.hkeys(&cache_name).await {
+            if let Ok(keys) = cache.keys(&format!("{}:*", cache_name)).await {
+                let keys = keys
+                    .iter()
+                    .map(|key| key.replace(&format!("{}:", cache_name), ""))
+                    .collect();
                 HttpResponse::Ok().json(RList::ok_with_data(keys))
             } else {
                 HttpResponse::Ok().json(RList::<String>::ok_with_data(vec![]))
@@ -81,21 +93,15 @@ pub async fn get_value(path: web::Path<(String, String)>) -> impl Responder {
     );
 
     if let Ok(cache) = get_global_cache() {
-        match cache_name.as_str() {
-            constants::cache::USER_INFO_KEY
-            | constants::cache::SYS_CONFIG_KEY
-            | constants::cache::SYS_DICT_KEY => {
-                if let Ok(value) = cache.hget_string(&cache_name, &cache_key).await {
-                    if let Some(value) = value {
-                        let mut cache_vo = get_cache_vo(&cache_name);
-                        cache_vo.cache_key = cache_key;
-                        cache_vo.cache_value = value;
-                        return HttpResponse::Ok().json(RData::<CacheVO>::ok(cache_vo));
-                    }
-                }
-            }
-            _ => {
-                return HttpResponse::Ok().json(R::<String>::fail("无法识别的缓存类型"));
+        if let Ok(value) = cache
+            .get_string(&format!("{}:{}", cache_name, cache_key))
+            .await
+        {
+            if let Some(value) = value {
+                let mut cache_vo = get_cache_vo(&cache_name);
+                cache_vo.cache_key = cache_key;
+                cache_vo.cache_value = value;
+                return HttpResponse::Ok().json(RData::<CacheVO>::ok(cache_vo));
             }
         }
     }
@@ -147,6 +153,46 @@ pub async fn get_redis_info(config: web::Data<Arc<AppConfig>>) -> impl Responder
         }
     }
 }
+#[delete("/clearCacheName/{cache_name}")]
+pub async fn clear_cache_name(path: web::Path<String>) -> impl Responder {
+    let cache_name = path.into_inner();
+    if let Ok(cache) = get_global_cache() {
+        if let Ok(keys) = cache.keys(&format!("{}:*", cache_name)).await {
+            for key in keys {
+                let _ = cache.del(&key).await;
+            }
+            return HttpResponse::Ok().json(R::<String>::ok_with_msg("操作成功"));
+        }
+    }
+    HttpResponse::Ok().json(R::<String>::fail("无法获取全局缓存实例"))
+}
+
+#[delete("/clearCacheKey/{cache_key}")]
+pub async fn clear_cache_key(path: web::Path<String>) -> impl Responder {
+    let cache_key = path.into_inner();
+    if let Ok(cache) = get_global_cache() {
+        if let Ok(keys) = cache.keys(&format!("*:{}", cache_key)).await {
+            for key in keys {
+                let _ = cache.del(&key).await;
+            }
+            return HttpResponse::Ok().json(R::<String>::ok_with_msg("操作成功"));
+        }
+    }
+    HttpResponse::Ok().json(R::<String>::fail("无法获取全局缓存实例"))
+}
+
+#[delete("/clearCacheAll")]
+pub async fn clear_cache_all() -> impl Responder {
+    if let Ok(cache) = get_global_cache() {
+        if let Ok(keys) = cache.keys("*").await {
+            for key in keys {
+                let _ = cache.del(&key).await;
+            }
+            return HttpResponse::Ok().json(R::<String>::ok_with_msg("操作成功"));
+        }
+    }
+    HttpResponse::Ok().json(R::<String>::fail("无法获取全局缓存实例"))
+}
 
 pub fn load_cache_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -154,6 +200,9 @@ pub fn load_cache_routes(cfg: &mut web::ServiceConfig) {
             .service(get_names)
             .service(get_keys)
             .service(get_value)
-            .service(get_redis_info),
+            .service(get_redis_info)
+            .service(clear_cache_name)
+            .service(clear_cache_key)
+            .service(clear_cache_all),
     );
 }

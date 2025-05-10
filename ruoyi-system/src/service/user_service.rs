@@ -91,17 +91,23 @@ impl UserService for UserServiceImpl {
         query: UserQuery,
         page_param: PageParam,
     ) -> Result<(Vec<UserInfo>, u64)> {
-        // 分页查询用户
-        let (users, total) = self
+        // 分页查询用户（已经包含了部门关联查询）
+        let (user_dept_pairs, total) = self
             .user_repository
             .find_user_list(&query, &page_param)
             .await?;
-        // 将UserModel转换为User实体
-        let users = users
+
+        // 将UserModel和DeptModel转换为UserInfo
+        let user_infos = user_dept_pairs
             .into_iter()
-            .map(|user_model| UserInfo::from_model(user_model))
+            .map(|(user_model, dept_model)| {
+                let mut user_info = UserInfo::from_model(&user_model);
+                user_info.dept = dept_model;
+                user_info
+            })
             .collect();
-        Ok((users, total))
+
+        Ok((user_infos, total))
     }
 
     async fn get_user_by_id(&self, user_id: i64) -> Result<Option<UserInfo>> {
@@ -112,9 +118,11 @@ impl UserService for UserServiceImpl {
             return Ok(None);
         }
         let user_model = user_model.unwrap();
-        let mut user = UserInfo::from_model(user_model);
+        let mut user = UserInfo::from_model(&user_model);
         // 获取部门信息
-        user.dept = self.dept_repository.find_by_id(user_id as i64).await?;
+        if let Some(dept_id) = user_model.dept_id {
+            user.dept = self.dept_repository.find_by_id(dept_id).await?;
+        }
         // 获取角色信息
         user.roles = self
             .role_repository
@@ -130,8 +138,11 @@ impl UserService for UserServiceImpl {
             return Ok(None);
         }
         let user_model = user_model.unwrap();
-
-        let user = UserInfo::from_model(user_model);
+        let mut user = UserInfo::from_model(&user_model);
+        // 获取部门信息
+        if let Some(dept_id) = user_model.dept_id {
+            user.dept = self.dept_repository.find_by_id(dept_id).await?;
+        }
         Ok(Some(user))
     }
 
@@ -219,9 +230,9 @@ impl UserService for UserServiceImpl {
                     .user_repository
                     .update_user(user_active_model, req.role_ids, req.post_ids)
                     .await?;
-                Ok(UserInfo::from_model(user_model))
+                Ok(UserInfo::from_model(&user_model))
             } else {
-                Ok(UserInfo::from_model(user))
+                Ok(UserInfo::from_model(&user))
             }
         } else {
             Err(Error::NotFound(format!(

@@ -218,9 +218,12 @@ pub async fn refresh_cache(config_service: web::Data<ConfigServiceImpl>) -> impl
             Ok(configs) => {
                 for config in configs {
                     let _ = cache
-                        .hset_string(
-                            constants::cache::SYS_CONFIG_KEY,
-                            &config.config_key.unwrap(),
+                        .set_string(
+                            &format!(
+                                "{}{}",
+                                constants::cache::SYS_CONFIG_PREFIX,
+                                config.config_key.unwrap()
+                            ),
                             &config.config_value.unwrap_or_default(),
                         )
                         .await;

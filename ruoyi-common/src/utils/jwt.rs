@@ -17,11 +17,14 @@ pub struct Claims {
     /// 用户ID
     pub user_id: i64,
     /// 用户名
-    pub user_name: String
+    pub user_name: String,
+    /// 会话ID
+    pub token_id: String,
 }
 
 /// 生成 JWT 令牌
 pub fn generate_token(
+    token_id: &str,
     user_id: i64,
     user_name: &str,
     secret: &str,
@@ -36,6 +39,7 @@ pub fn generate_token(
         iat: current_time.timestamp(),
         user_id,
         user_name: user_name.to_string(),
+        token_id: token_id.to_string(),
     };
 
     encode(

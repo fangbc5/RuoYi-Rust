@@ -1,6 +1,6 @@
 use crate::cache::{
     Cache, CacheError, CacheManager, LocalCacheConfig, LocalCacheManager, MultiLevelCacheConfig,
-    MultiLevelCacheManager, RedisCacheManager, RedisConfig, RedisConnectionType,
+    RedisConfig, RedisConnectionType,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -37,7 +37,7 @@ pub async fn cache_admin_example() -> Result<(), CacheError> {
     };
 
     // 创建CacheSettings配置
-    let settings = crate::config::cache::CacheSettings {
+    let _settings = crate::config::cache::CacheSettings {
         enabled: true,
         cache_type: crate::config::cache::CacheType::Multi,
         local: Arc::new(LocalCacheConfig::default()),
