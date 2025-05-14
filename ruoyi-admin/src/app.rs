@@ -93,6 +93,9 @@ pub fn configure_app(
         login_info_repository,
     ));
 
+    // 初始化代码生成服务
+    let gen_controller = ruoyi_generator::init(db_manager.get_connection());
+
     let app = App::new()
         // 1. 内置日志中间件 (最外层)
         // .wrap(Logger::default())
@@ -122,6 +125,7 @@ pub fn configure_app(
         .app_data(notice_service)
         .app_data(oper_log_service)
         .app_data(login_info_service)
+        .app_data(gen_controller)
         // 基础健康检查路由
         .service(health_check)
         // 验证码路由
@@ -136,6 +140,7 @@ pub fn configure_app(
 pub fn register_routes(cfg: &mut web::ServiceConfig) {
     cfg.configure(ruoyi_framework::web::register_routes);
     cfg.configure(ruoyi_system::register_routes);
+    cfg.configure(ruoyi_generator::register_routes);
 }
 
 /// 获取不需要认证的路径列表
@@ -159,7 +164,6 @@ pub async fn init_global_cache(config: Arc<AppConfig>) {
     // 1. 初始化全局缓存（通常在应用启动时只执行一次）
     if !is_global_cache_initialized() {
         println!("初始化全局缓存...");
-
 
         // 使用异步方法初始化全局缓存
         match init_global_cache_async(config.cache.clone()).await {

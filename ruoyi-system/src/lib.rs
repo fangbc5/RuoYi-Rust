@@ -1,6 +1,5 @@
 // ruoyi-system/src/lib.rs
 //! 若依管理系统的系统模块
-
 use actix_web::web;
 
 pub mod controller;

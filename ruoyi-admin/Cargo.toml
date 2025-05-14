@@ -15,6 +15,7 @@ path = "src/main.rs"
 ruoyi-common = { path = "../ruoyi-common" }
 ruoyi-framework = { path = "../ruoyi-framework" }
 ruoyi-system = { path = "../ruoyi-system" }
+ruoyi-generator = { path = "../ruoyi-generator" }
 
 # Web 框架
 actix-web.workspace = true

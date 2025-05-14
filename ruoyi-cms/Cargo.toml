@@ -1,5 +1,5 @@
 [package]
-name = "ruoyi-generator"
+name = "ruoyi-cms"
 version = "0.1.0"
 edition = "2021"
 
@@ -18,14 +18,3 @@ actix-web.workspace = true
 # 序列化与反序列化
 serde.workspace = true
 serde_json.workspace = true
-
-# 工具库
-chrono.workspace = true
-async-trait.workspace = true
-regex.workspace = true
-
-# 日志和监控
-log.workspace = true
-
-# 模版引擎
-askama.workspace = true

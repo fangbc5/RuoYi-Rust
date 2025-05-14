@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "ruoyi-admin",
+    "ruoyi-admin", "ruoyi-cms",
     "ruoyi-common",
     "ruoyi-framework", "ruoyi-generator",
     "ruoyi-macros",
@@ -68,6 +68,9 @@ dotenv = "0.15.0"
 # 验证码
 captcha = "0.0.9"
 image = "0.24.7" 
+
+#模版引擎
+askama = "0.14.0"
 
 [profile.release]
 # 最小体积优化，或 "s" 为适度优化
