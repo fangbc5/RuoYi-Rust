@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use ruoyi_common::{error::Error, vo::PageParam, Result};
-use sea_orm::{ActiveValue::NotSet, IntoActiveModel, Set};
+use sea_orm::{ActiveValue::NotSet, Set};
 use sea_orm::{DatabaseConnection, TransactionTrait};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -35,7 +35,11 @@ pub trait GenTableService: Send + Sync {
     ) -> Result<(Vec<GenTableModel>, u64)>;
 
     /// 导入表结构
-    async fn import_gen_table(&self, table_names: Vec<&str>) -> Result<()>;
+    async fn import_gen_table(
+        &self,
+        table_names: Vec<&str>,
+        gen_config: Arc<GenConfig>,
+    ) -> Result<()>;
 
     /// 创建业务表
     async fn create_gen_table(&self, gen_table: GenTableModel) -> Result<()>;
@@ -49,14 +53,14 @@ pub trait GenTableService: Send + Sync {
     /// 预览代码
     async fn preview_code(&self, table_id: i64) -> Result<Vec<TemplateData>>;
 
-    /// 生成代码
-    async fn generate_code(&self, table_id: i64) -> Result<Vec<u8>>;
+    /// 下载代码
+    async fn download(&self, table_id: i64) -> Result<Vec<u8>>;
 
     /// 同步数据库
     async fn synch_db(&self, table_id: i64) -> Result<()>;
 
     /// 批量生成代码
-    async fn batch_gen_code(&self, table_id: i64) -> Result<()>;
+    async fn batch_gen_code(&self, table_names: Vec<&str>) -> Result<()>;
 }
 
 /// 代码生成表详情（包含字段信息）
@@ -90,6 +94,7 @@ pub struct UpdateGenTableRequest {
     pub function_author: Option<String>,
     pub gen_type: Option<String>,
     pub gen_path: Option<String>,
+    pub parent_menu_id: Option<i64>,
     pub options: Option<String>,
     pub remark: Option<String>,
 
@@ -101,7 +106,7 @@ pub struct UpdateGenTableRequest {
     pub update_by: Option<String>,
     #[serde(skip)]
     pub update_time: Option<chrono::DateTime<chrono::Utc>>,
-    pub params: Option<HashMap<String, String>>,
+    pub params: Option<HashMap<String, serde_json::Value>>,
 }
 
 /// 模板数据
@@ -178,7 +183,11 @@ impl GenTableService for GenTableServiceImpl {
             .await
     }
 
-    async fn import_gen_table(&self, table_names: Vec<&str>) -> Result<()> {
+    async fn import_gen_table(
+        &self,
+        table_names: Vec<&str>,
+        gen_config: Arc<GenConfig>,
+    ) -> Result<()> {
         let tx = self.db.begin().await?;
         for table_name in table_names {
             // 查询表是否在数据库中存在
@@ -205,7 +214,6 @@ impl GenTableService for GenTableServiceImpl {
             }
             // 创建并插入表
             let table_db = table_db.unwrap();
-            let gen_config = Arc::new(GenConfig::default());
             let gen_table = utils::init_table(gen_config.clone(), table_db).await;
             // 填充信息
             let gen_table = self
@@ -237,7 +245,7 @@ impl GenTableService for GenTableServiceImpl {
         let tx = self.db.begin().await?;
 
         // 将请求中的表信息转换为 GenTableActiveModel
-        let active_model = GenTableActiveModel {
+        let mut active_model = GenTableActiveModel {
             table_id: Set(request.table_id),
             table_name: Set(request.table_name),
             table_comment: Set(request.table_comment),
@@ -254,12 +262,17 @@ impl GenTableService for GenTableServiceImpl {
             gen_type: Set(request.gen_type),
             gen_path: Set(request.gen_path),
             options: Set(request.options),
+            parent_menu_id: Set(request.parent_menu_id),
             create_by: NotSet, // 不更新创建信息
             create_time: NotSet,
             update_by: NotSet,
             update_time: NotSet, // 设置为当前时间
             remark: Set(request.remark),
         };
+        // 如果有params，则更新params
+        if let Some(params) = request.params {
+            active_model.options = Set(Some(serde_json::to_string(&params).unwrap_or_default()));
+        }
 
         // 更新表信息
         self.gen_table_repository
@@ -351,8 +364,7 @@ impl GenTableService for GenTableServiceImpl {
         }
     }
 
-    async fn generate_code(&self, table_id: i64) -> Result<Vec<u8>> {
-        // 获取表信息
+    async fn download(&self, table_id: i64) -> Result<Vec<u8>> {
         todo!()
     }
 
@@ -360,8 +372,8 @@ impl GenTableService for GenTableServiceImpl {
         todo!()
     }
 
-    async fn batch_gen_code(&self, table_id: i64) -> Result<()> {
-        todo!()
+    async fn batch_gen_code(&self, table_names: Vec<&str>) -> Result<()> {
+        Ok(())
     }
 }
 

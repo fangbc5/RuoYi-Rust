@@ -2,10 +2,23 @@
 
 /// 文件服务
 pub mod file {
+    use actix_web::HttpResponse;
+
     // 通用文件服务实现
     pub async fn upload_file() -> Result<String, anyhow::Error> {
         // TODO: 实现文件上传逻辑
         Ok("文件上传成功".to_string())
+    }
+
+    pub async fn download_file(file_name: &str, data: Vec<u8>) -> HttpResponse {
+        // TODO: 实现文件下载逻辑
+        HttpResponse::Ok()
+            .content_type("application/octet-stream; charset=UTF-8")
+            .append_header(("Access-Control-Allow-Origin", "*"))
+            .append_header(("Access-Control-Expose-Headers", "Content-Disposition"))
+            .append_header(("Content-Disposition", format!("attachment; filename=\"{}\"", file_name)))
+            .append_header(("Content-Length", data.len().to_string()))
+            .body(data)
     }
 }
 

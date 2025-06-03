@@ -1,9 +1,11 @@
 use actix_web::{web, HttpResponse, Responder};
 use log::error;
 use ruoyi_common::vo::{PageParam, RData, R};
+use ruoyi_framework::web::service::file::download_file;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
+use crate::config::GenConfig;
 use crate::entity::prelude::*;
 use crate::repository::GenTableQuery;
 use crate::service::gen_table_service::UpdateGenTableRequest;
@@ -111,18 +113,13 @@ impl GenController {
 
     /// 修改代码生成业务
     pub async fn update(&self, table: web::Json<UpdateGenTableRequest>) -> impl Responder {
-        let request = table.into_inner();
-        log::info!(
-            "收到更新请求，表ID: {}, 列数量: {}",
-            request.table_id,
-            request.columns.len()
-        );
-        log::debug!("请求数据: {:?}", request);
-
-        match self.gen_table_service.update_gen_table(request).await {
+        match self
+            .gen_table_service
+            .update_gen_table(table.into_inner())
+            .await
+        {
             Ok(_) => HttpResponse::Ok().json(R::<()>::ok_with_msg("修改成功")),
             Err(e) => {
-                log::error!("修改失败: {:?}", e);
                 HttpResponse::InternalServerError().json(R::<()>::error_with_msg(&e.to_string()))
             }
         }
@@ -147,7 +144,7 @@ impl GenController {
     pub async fn download(&self, path: web::Path<i64>) -> impl Responder {
         let table_id = path.into_inner();
 
-        match self.gen_table_service.generate_code(table_id).await {
+        match self.gen_table_service.download(table_id).await {
             Ok(data) => {
                 // 返回ZIP文件
                 HttpResponse::Ok()
@@ -162,9 +159,17 @@ impl GenController {
     }
 
     /// 导入表结构
-    pub async fn import_table(&self, query: web::Query<TablesQuery>) -> impl Responder {
+    pub async fn import_table(
+        &self,
+        query: web::Query<TablesQuery>,
+        gen_config: web::Data<GenConfig>,
+    ) -> impl Responder {
         let tables = query.tables.split(',').collect::<Vec<&str>>();
-        match self.gen_table_service.import_gen_table(tables).await {
+        match self
+            .gen_table_service
+            .import_gen_table(tables, gen_config.into_inner())
+            .await
+        {
             Ok(_) => HttpResponse::Ok().json(R::<()>::ok_with_msg("导入成功")),
             Err(e) => {
                 error!("导入表失败: {}", e);
@@ -195,22 +200,6 @@ impl GenController {
         }
     }
 
-    /// 生成代码
-    pub async fn gen_code(&self, path: web::Path<i64>) -> impl Responder {
-        let table_id = path.into_inner();
-
-        match self.gen_table_service.generate_code(table_id).await {
-            Ok(data) => HttpResponse::Ok()
-                .content_type("application/octet-stream")
-                .append_header(("Content-Disposition", "attachment; filename=\"ruoyi.zip\""))
-                .body(data),
-            Err(e) => {
-                error!("生成代码失败: {}", e);
-                HttpResponse::Ok().json(R::<()>::error_with_msg("生成失败"))
-            }
-        }
-    }
-
     /// 同步数据库
     pub async fn synch_db(&self, path: web::Path<i64>) -> impl Responder {
         let table_id = path.into_inner();
@@ -225,11 +214,17 @@ impl GenController {
     }
 
     /// 批量生成代码
-    pub async fn batch_gen_code(&self, path: web::Path<i64>) -> impl Responder {
-        let table_id = path.into_inner();
+    pub async fn batch_gen_code(&self, query: web::Query<TablesQuery>) -> impl Responder {
+        let tables = query.tables.split(',').collect::<Vec<&str>>();
 
-        match self.gen_table_service.batch_gen_code(table_id).await {
-            Ok(_) => HttpResponse::Ok().json(R::<()>::ok_with_msg("批量生成成功")),
+        match self.gen_table_service.batch_gen_code(tables).await {
+            Ok(_) =>
+            // 返回文件流
+            {
+                // HttpResponse::Ok().json(R::<()>::ok_with_msg("批量生成成功"))
+                let data = vec![1, 3, 43, 1, 4, 6, 8, 3];
+                download_file("ruoyi.zip", data).await
+            }
             Err(e) => {
                 error!("批量生成代码失败: {}", e);
                 HttpResponse::Ok().json(R::<()>::error_with_msg("批量生成失败"))
@@ -254,14 +249,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
                 ),
             )
             .route(
-                "/{tableId}",
-                web::get().to(
-                    |gen: web::Data<GenController>, path: web::Path<i64>| async move {
-                        gen.get_info(path).await
-                    },
-                ),
-            )
-            .route(
                 "/db/list",
                 web::get().to(
                     |gen: web::Data<GenController>,
@@ -282,8 +269,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route(
                 "/importTable",
                 web::post().to(
-                    |gen: web::Data<GenController>, query: web::Query<TablesQuery>| async move {
-                        gen.import_table(query).await
+                    |gen: web::Data<GenController>, query: web::Query<TablesQuery>, gen_config: web::Data<GenConfig>| async move {
+                        gen.import_table(query, gen_config).await
                     },
                 ),
             )
@@ -328,14 +315,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
                 ),
             )
             .route(
-                "/genCode/{tableName}",
-                web::get().to(
-                    |gen: web::Data<GenController>, path: web::Path<i64>| async move {
-                        gen.gen_code(path).await
-                    },
-                ),
-            )
-            .route(
                 "/synchDb/{tableName}",
                 web::get().to(
                     |gen: web::Data<GenController>, path: web::Path<i64>| async move {
@@ -346,8 +325,15 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route(
                 "/batchGenCode",
                 web::get().to(
+                    |gen: web::Data<GenController>, query: web::Query<TablesQuery>| async move {
+                        gen.batch_gen_code(query).await
+                    },
+                ),
+            ).route(
+                "/{tableId}",
+                web::get().to(
                     |gen: web::Data<GenController>, path: web::Path<i64>| async move {
-                        gen.batch_gen_code(path).await
+                        gen.get_info(path).await
                     },
                 ),
             ),

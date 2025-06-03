@@ -1,11 +1,12 @@
+mod common;
 mod config;
 mod controller;
 pub mod entity;
 mod repository;
 mod service;
-mod common;
 
 use actix_web::web;
+pub use config::GenConfig;
 use sea_orm::DatabaseConnection;
 use std::sync::Arc;
 
@@ -14,6 +15,20 @@ use std::sync::Arc;
 
 pub fn register_routes(cfg: &mut web::ServiceConfig) {
     controller::config(cfg);
+    init_config(
+        cfg,
+        GenConfig {
+            author: Some("ruoyi".to_string()),
+            package_name: Some("com.ruoyi".to_string()),
+            auto_remove_pre: true,
+            table_prefix: Some("gen_,sys_,cms_".to_string()),
+            allow_overwrite: false,
+        },
+    );
+}
+
+fn init_config(cfg: &mut web::ServiceConfig, gen_config: GenConfig) {
+    cfg.app_data(web::Data::new(gen_config));
 }
 
 /// 初始化代码生成模块

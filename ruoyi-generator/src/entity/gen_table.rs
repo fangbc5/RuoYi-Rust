@@ -25,6 +25,7 @@ pub struct Model {
     pub function_author: Option<String>,
     pub gen_type: Option<String>,
     pub gen_path: Option<String>,
+    pub parent_menu_id: Option<i64>,
     pub options: Option<String>,
     pub create_by: Option<String>,
     #[serde(

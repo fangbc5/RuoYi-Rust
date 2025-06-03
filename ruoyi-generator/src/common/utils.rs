@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use regex::Regex;
 use ruoyi_common::utils;
-use sea_orm::{IntoActiveModel, Set};
+use sea_orm::{ActiveValue::NotSet, IntoActiveModel, Set};
 
 use crate::{common::constants::*, config::GenConfig, entity::prelude::*};
 
@@ -12,7 +12,30 @@ pub async fn init_table(
 ) -> GenTableActiveModel {
     let table_name = gen_table.table_name.clone();
     let table_comment = gen_table.table_comment.clone();
-    let mut gen_table = gen_table.into_active_model();
+    let mut gen_table = GenTableActiveModel {
+        table_id: NotSet,
+        table_name: Set(table_name.clone()),
+        table_comment: Set(table_comment.clone()),
+        sub_table_name: NotSet,
+        sub_table_fk_name: NotSet,
+        class_name: NotSet,
+        tpl_category: NotSet,
+        tpl_web_type: NotSet,
+        package_name: NotSet,
+        module_name: NotSet,
+        business_name: NotSet,
+        function_name: NotSet,
+        function_author: NotSet,
+        gen_type: NotSet,
+        gen_path: NotSet,
+        parent_menu_id: NotSet,
+        options: NotSet,
+        create_by: NotSet,
+        create_time: NotSet,
+        update_by: NotSet,
+        update_time: NotSet,
+        remark: NotSet,
+    };
     if let Some(table_name) = table_name {
         gen_table.class_name = Set(Some(convert_class_name(&table_name, gen_config.clone())));
         gen_table.business_name = Set(Some(get_business_name(&table_name)));
